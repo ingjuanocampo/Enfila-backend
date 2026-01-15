@@ -1,0 +1,871 @@
+{
+	"info": {
+		"_postman_id": "12345678-1234-1234-1234-123456789012",
+		"name": "EnFila Backend API",
+		"description": "Complete API collection for the EnFila queue management backend system.\n\n**Base URL:** http://localhost:8080\n\n**Features:**\n- User management\n- Client management\n- Shift/Queue management\n- Company site management\n- Messaging via Twilio\n- Firebase migration tools\n\n**Setup:**\n1. Make sure Docker backend is running: `docker-compose up --build`\n2. Test health endpoint first\n3. Create company sites before creating shifts",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has status\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"OK\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/health",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"health"
+					]
+				},
+				"description": "Health check endpoint to verify backend is running"
+			},
+			"response": []
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Create User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"// Store user ID for other tests",
+									"if (pm.response.json().success && pm.response.json().data) {",
+									"    pm.collectionVariables.set(\"userId\", pm.response.json().data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"+1234567890\",\n    \"name\": \"John Doe\",\n    \"companyIds\": [\"company-123\", \"company-456\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users"
+							]
+						},
+						"description": "Create a new user with phone number and optional name and company IDs"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users"
+							]
+						},
+						"description": "Retrieve all users in the system"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"{{userId}}"
+							]
+						},
+						"description": "Get a specific user by their ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by Phone",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/by-phone/+1234567890",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"by-phone",
+								"+1234567890"
+							]
+						},
+						"description": "Find a user by their phone number"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Updated\",\n    \"companyIds\": [\"company-123\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"{{userId}}"
+							]
+						},
+						"description": "Update user information"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"{{userId}}"
+							]
+						},
+						"description": "Delete a user from the system"
+					},
+					"response": []
+				}
+			],
+			"description": "User management endpoints for creating, reading, updating, and deleting users"
+		},
+		{
+			"name": "Clients",
+			"item": [
+				{
+					"name": "Create Client",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Store client ID for other tests",
+									"if (pm.response.json().success && pm.response.json().data) {",
+									"    pm.collectionVariables.set(\"clientId\", pm.response.json().data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"+1234567890\",\n    \"name\": \"Jane Smith\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/clients",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clients"
+							]
+						},
+						"description": "Create a new client (customer in the queue system)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Clients",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/clients",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clients"
+							]
+						},
+						"description": "Get all clients in the system"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Client by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/clients/{{clientId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clients",
+								"{{clientId}}"
+							]
+						},
+						"description": "Get a specific client by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Client",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Jane Updated\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/clients/{{clientId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clients",
+								"{{clientId}}"
+							]
+						},
+						"description": "Update client information"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Client",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/clients/{{clientId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clients",
+								"{{clientId}}"
+							]
+						},
+						"description": "Delete a client from the system"
+					},
+					"response": []
+				}
+			],
+			"description": "Client management endpoints for queue customers"
+		},
+		{
+			"name": "Company Sites",
+			"item": [
+				{
+					"name": "Create Company Site",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Store company site ID for other tests",
+									"if (pm.response.json().success && pm.response.json().data) {",
+									"    pm.collectionVariables.set(\"companySiteId\", pm.response.json().data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Main Restaurant Downtown\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/company-sites",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"company-sites"
+							]
+						},
+						"description": "Create a new company site/location"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Company Sites",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/company-sites",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"company-sites"
+							]
+						},
+						"description": "Get all company sites"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Company Site by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/company-sites/{{companySiteId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"company-sites",
+								"{{companySiteId}}"
+							]
+						},
+						"description": "Get a specific company site by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Company Site",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Main Restaurant Updated\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/company-sites/{{companySiteId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"company-sites",
+								"{{companySiteId}}"
+							]
+						},
+						"description": "Update company site information"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Company Site",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/company-sites/{{companySiteId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"company-sites",
+								"{{companySiteId}}"
+							]
+						},
+						"description": "Delete a company site"
+					},
+					"response": []
+				}
+			],
+			"description": "Company site management for different business locations"
+		},
+		{
+			"name": "Shifts",
+			"item": [
+				{
+					"name": "Create Shift",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Store shift ID for other tests",
+									"if (pm.response.json().success && pm.response.json().data) {",
+									"    pm.collectionVariables.set(\"shiftId\", pm.response.json().data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"parentCompanySite\": \"{{companySiteId}}\",\n    \"number\": 1,\n    \"contactId\": \"+1234567890\",\n    \"notes\": \"First customer of the day\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/shifts",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"shifts"
+							]
+						},
+						"description": "Create a new shift in the queue"
+					},
+					"response": []
+				},
+				{
+					"name": "Quick Assign Shift",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"parentCompanySite\": \"{{companySiteId}}\",\n    \"number\": 2,\n    \"contactId\": \"+1234567891\",\n    \"notes\": \"VIP customer\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/shifts/assign",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"shifts",
+								"assign"
+							]
+						},
+						"description": "Quick assign a shift to a customer"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Shifts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/shifts",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"shifts"
+							]
+						},
+						"description": "Get all shifts in the system"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Shifts by Company ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/shifts?companyId={{companySiteId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"shifts"
+							],
+							"query": [
+								{
+									"key": "companyId",
+									"value": "{{companySiteId}}"
+								}
+							]
+						},
+						"description": "Get shifts filtered by company site ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Shift by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/shifts/{{shiftId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"shifts",
+								"{{shiftId}}"
+							]
+						},
+						"description": "Get a specific shift by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Shift Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/shifts/{{shiftId}}/details",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"shifts",
+								"{{shiftId}}",
+								"details"
+							]
+						},
+						"description": "Get shift details including client information"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Shift",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"number\": 3,\n    \"notes\": \"Updated notes\",\n    \"state\": \"CALLING\",\n    \"attentionStartDate\": 1725356400000,\n    \"endDate\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/shifts/{{shiftId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"shifts",
+								"{{shiftId}}"
+							]
+						},
+						"description": "Update shift information and status"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Shift",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/shifts/{{shiftId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"shifts",
+								"{{shiftId}}"
+							]
+						},
+						"description": "Delete a shift from the queue"
+					},
+					"response": []
+				}
+			],
+			"description": "Shift/Queue management endpoints. Shift states: WAITING, CALLING, CANCELLED, FINISHED"
+		},
+		{
+			"name": "Messages",
+			"item": [
+				{
+					"name": "Send Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"to\": \"+1234567890\",\n    \"from\": \"+1987654321\",\n    \"body\": \"Your turn is ready! Please come to the counter. Queue #1\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/messages/send",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"messages",
+								"send"
+							]
+						},
+						"description": "Send a WhatsApp message via Twilio to notify customers"
+					},
+					"response": []
+				}
+			],
+			"description": "Messaging endpoints using Twilio for WhatsApp notifications"
+		},
+		{
+			"name": "Migration",
+			"item": [
+				{
+					"name": "Migrate from Firebase",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/migration/from-firebase",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"migration",
+								"from-firebase"
+							]
+						},
+						"description": "Migrate existing data from Firebase to PostgreSQL"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Migration Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/migration/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"migration",
+								"status"
+							]
+						},
+						"description": "Check the status of data migration"
+					},
+					"response": []
+				}
+			],
+			"description": "Migration tools for moving data from Firebase to the new backend"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "clientId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "companySiteId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "shiftId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
