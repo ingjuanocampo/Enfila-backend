@@ -1,0 +1,65 @@
+# Production Docker Compose
+# Uses a pre-built image from GitHub Container Registry (GHCR).
+# All secrets are read from the .env file on the server.
+# Run with: docker compose -f docker-compose.prod.yml up -d
+
+services:
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    # Database is NOT exposed to the host — only reachable within the Docker network
+    expose:
+      - "5432"
+
+  backend:
+    image: ghcr.io/ingjuanocampo/enfila-backend:latest
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=jdbc:postgresql://db:5432/${DB_NAME}
+      - DATABASE_USER=${DB_USER}
+      - DATABASE_PASSWORD=${DB_PASSWORD}
+      - TWILIO_SID=${TWILIO_SID}
+      - TWILIO_TOKEN=${TWILIO_TOKEN}
+    volumes:
+      - ./firebase-service-account.json:/app/firebase-service-account.json:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    # Backend is NOT exposed directly — Nginx proxies to it
+    expose:
+      - "8080"
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Mount SSL certs here once you set up Let's Encrypt with Certbot:
+      # - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

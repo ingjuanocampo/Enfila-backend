@@ -84,6 +84,11 @@ postgres_data/
 .dockerignore
 docker-compose.override.yml
 
+# Production secrets on the server — never commit the actual .env
+.env
+# But DO commit the example template
+!.env.example
+
 # Temporary files
 *.tmp
 *.temp
