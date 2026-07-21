@@ -7,6 +7,7 @@ interface TipService {
     suspend fun publishTip(request: PublishTipRequest): ApiResponse<Tip>
     suspend fun getPublishedTips(): ApiResponse<List<Tip>>
     suspend fun getTipsForUser(userId: String): ApiResponse<List<TipWithStatus>>
+    suspend fun deleteTip(id: String): ApiResponse<Unit>
 }
 
 class TipServiceImpl(
@@ -46,6 +47,19 @@ class TipServiceImpl(
             tips.toApiResponse()
         } catch (e: Exception) {
             "Failed to get tips for user: ${e.message}".toErrorResponse()
+        }
+    }
+
+    override suspend fun deleteTip(id: String): ApiResponse<Unit> {
+        return try {
+            val deleted = tipRepository.delete(id)
+            if (deleted) {
+                Unit.toApiResponse()
+            } else {
+                "Tip not found".toErrorResponse()
+            }
+        } catch (e: Exception) {
+            "Failed to delete tip: ${e.message}".toErrorResponse()
         }
     }
 }

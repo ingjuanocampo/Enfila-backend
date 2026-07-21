@@ -1,6 +1,7 @@
 package com.ingjuanocampo.enfila.backend.routes
 
 import com.ingjuanocampo.enfila.backend.data.models.BadRequestResponse
+import com.ingjuanocampo.enfila.backend.data.models.ErrorResponse
 import com.ingjuanocampo.enfila.backend.data.models.PublishTipRequest
 import com.ingjuanocampo.enfila.backend.services.TipService
 import io.ktor.http.*
@@ -38,6 +39,23 @@ fun Route.tipRoutes() {
 
             val response = tipService.getTipsForUser(userId)
             call.respond(response)
+        }
+
+        delete("/{id}") {
+            val id = call.parameters["id"] ?: return@delete call.respond(
+                HttpStatusCode.BadRequest,
+                BadRequestResponse("ID parameter is required"),
+            )
+
+            val response = tipService.deleteTip(id)
+            if (response.success) {
+                call.respond(HttpStatusCode.NoContent)
+            } else {
+                call.respond(
+                    HttpStatusCode.NotFound,
+                    ErrorResponse(error = response.error.orEmpty()),
+                )
+            }
         }
     }
 }

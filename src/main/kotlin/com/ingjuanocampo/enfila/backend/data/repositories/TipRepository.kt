@@ -13,6 +13,7 @@ import java.util.UUID
 interface TipRepository {
     suspend fun publish(request: PublishTipRequest): Tip
     suspend fun getPublishedOrdered(): List<Tip>
+    suspend fun delete(id: String): Boolean
 }
 
 class TipRepositoryImpl : TipRepository {
@@ -60,5 +61,9 @@ class TipRepositoryImpl : TipRepository {
         TipsTable.select { TipsTable.published eq true }
             .orderBy(TipsTable.displayOrder to SortOrder.ASC)
             .map { it.toTip() }
+    }
+
+    override suspend fun delete(id: String): Boolean = transaction {
+        TipsTable.deleteWhere { TipsTable.id eq EntityID(id, TipsTable) } > 0
     }
 }
