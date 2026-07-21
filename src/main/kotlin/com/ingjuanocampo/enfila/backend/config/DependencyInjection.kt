@@ -20,7 +20,8 @@ val appModule = module {
     single<ClientRepository> { ClientRepositoryImpl() }
     single<ShiftRepository> { ShiftRepositoryImpl() }
     single<CompanySiteRepository> { CompanySiteRepositoryImpl() }
-    
+    single<TipRepository> { TipRepositoryImpl() }
+
     // Services
     single<UserService> { UserServiceImpl(get()) }
     single<ClientService> { ClientServiceImpl(get()) }
@@ -28,4 +29,8 @@ val appModule = module {
     single<CompanySiteService> { CompanySiteServiceImpl(get()) }
     single<MessageService> { MessageServiceImpl() }
     single<MigrationService> { MigrationServiceImpl(get(), get(), get(), get()) }
+    single<UsageMilestoneEvaluator> {
+        UsageMilestoneEvaluatorImpl(get(), get(), get(), get())
+    }
+    single<TipService> { TipServiceImpl(get(), get()) }
 }

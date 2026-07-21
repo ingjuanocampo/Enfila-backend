@@ -27,6 +27,7 @@ fun Application.configureRouting() {
             companySiteRoutes()
             messageRoutes()
             migrationRoutes()
+            tipRoutes()
         }
     }
 }

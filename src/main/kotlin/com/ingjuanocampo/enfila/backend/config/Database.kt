@@ -43,6 +43,7 @@ fun Application.configureDatabase() {
             ClientsTable,
             CompanySitesTable,
             ShiftsTable,
+            TipsTable,
             ConfigTable
         )
     }

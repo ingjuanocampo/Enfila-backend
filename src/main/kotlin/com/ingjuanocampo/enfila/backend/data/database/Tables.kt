@@ -58,6 +58,20 @@ object ShiftsTable : IdTable<String>("shifts") {
     override val primaryKey = PrimaryKey(id)
 }
 
+// Tips table
+object TipsTable : IdTable<String>("tips") {
+    override val id: Column<EntityID<String>> = varchar("id", 36).entityId()
+    val displayOrder = integer("display_order")
+    val question = text("question")
+    val answer = text("answer")
+    val milestone = enumeration("milestone", com.ingjuanocampo.enfila.backend.data.models.TipMilestone::class)
+    val published = bool("published").default(true)
+    val createdAt = timestamp("created_at").default(Instant.now())
+    val updatedAt = timestamp("updated_at").default(Instant.now())
+
+    override val primaryKey = PrimaryKey(id)
+}
+
 // Configuration table for storing app settings
 object ConfigTable : Table("config") {
     val key = varchar("key", 255)
