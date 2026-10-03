@@ -12,6 +12,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
+import java.time.LocalDate
 
 interface ClientRepository {
     suspend fun create(request: CreateClientRequest): Client
@@ -30,7 +31,14 @@ class ClientRepositoryImpl : ClientRepository {
         name = this[ClientsTable.name],
         shifts = this[ClientsTable.shifts]?.let { 
             Json.decodeFromString<List<String>>(it) 
-        }
+        },
+        email = this[ClientsTable.email],
+        birthDate = this[ClientsTable.birthDate]?.toString(),
+        sex = this[ClientsTable.sex],
+        city = this[ClientsTable.city],
+        notes = this[ClientsTable.notes],
+        favoriteOrder = this[ClientsTable.favoriteOrder],
+        favoriteStoreId = this[ClientsTable.favoriteStoreId],
     )
     
     override suspend fun create(request: CreateClientRequest): Client = transaction {
@@ -63,7 +71,16 @@ class ClientRepositoryImpl : ClientRepository {
         if (!exists) return@newSuspendedTransaction null
         
         ClientsTable.update({ ClientsTable.id eq EntityID(id, ClientsTable) }) {
-            if (request.name != null) it[name] = request.name
+            request.name?.let { value -> it[name] = value.ifBlank { null } }
+            request.email?.let { value -> it[email] = value.ifBlank { null } }
+            request.birthDate?.let { value ->
+                it[birthDate] = value.ifBlank { null }?.let { LocalDate.parse(it) }
+            }
+            request.sex?.let { value -> it[sex] = value.ifBlank { null } }
+            request.city?.let { value -> it[city] = value.ifBlank { null } }
+            request.notes?.let { value -> it[notes] = value.ifBlank { null } }
+            request.favoriteOrder?.let { value -> it[favoriteOrder] = value.ifBlank { null } }
+            request.favoriteStoreId?.let { value -> it[favoriteStoreId] = value.ifBlank { null } }
             it[updatedAt] = Instant.now()
         }
         

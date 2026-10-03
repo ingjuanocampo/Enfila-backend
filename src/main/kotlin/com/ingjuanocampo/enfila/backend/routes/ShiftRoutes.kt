@@ -16,7 +16,8 @@ import org.koin.ktor.ext.inject
 data class AssignShiftRequest(
     val companySiteId: String,
     val contactId: String,
-    val notes: String? = null
+    val notes: String? = null,
+    val clientName: String? = null,
 )
 
 fun Route.shiftRoutes() {
@@ -41,7 +42,8 @@ fun Route.shiftRoutes() {
             val response = shiftService.assignShift(
                 companySiteId = request.companySiteId,
                 contactId = request.contactId,
-                notes = request.notes
+                notes = request.notes,
+                clientName = request.clientName,
             )
 
             if (response.success) {

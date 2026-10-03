@@ -38,7 +38,7 @@ fun Application.configureDatabase() {
     
     // Create tables
     transaction {
-        SchemaUtils.create(
+        SchemaUtils.createMissingTablesAndColumns(
             UsersTable,
             ClientsTable,
             CompanySitesTable,

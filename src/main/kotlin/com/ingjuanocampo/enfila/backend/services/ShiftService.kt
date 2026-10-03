@@ -13,7 +13,12 @@ interface ShiftService {
     suspend fun getShiftsByContact(contactId: String): ApiResponse<List<Shift>>
     suspend fun updateShift(id: String, request: UpdateShiftRequest): ApiResponse<Shift>
     suspend fun deleteShift(id: String): ApiResponse<Unit>
-    suspend fun assignShift(companySiteId: String, contactId: String, notes: String?): ApiResponse<Shift>
+    suspend fun assignShift(
+        companySiteId: String,
+        contactId: String,
+        notes: String?,
+        clientName: String? = null,
+    ): ApiResponse<Shift>
 }
 
 class ShiftServiceImpl(
@@ -122,15 +127,21 @@ class ShiftServiceImpl(
         }
     }
     
-    override suspend fun assignShift(companySiteId: String, contactId: String, notes: String?): ApiResponse<Shift> {
+    override suspend fun assignShift(
+        companySiteId: String,
+        contactId: String,
+        notes: String?,
+        clientName: String?,
+    ): ApiResponse<Shift> {
         return try {
             // Get next shift number for the company site
             val nextNumber = shiftRepository.getNextNumber(companySiteId)
             
-            // Create or get client
+            // Create or get client. The optional name is kept only the first time.
             var client = clientRepository.getById(contactId)
             if (client == null) {
-                client = clientRepository.create(CreateClientRequest(id = contactId, name = contactId))
+                val name = clientName?.trim()?.takeIf { it.isNotEmpty() } ?: contactId
+                client = clientRepository.create(CreateClientRequest(id = contactId, name = name))
             }
             
             // Create shift request

@@ -60,8 +60,10 @@ fun Route.clientRoutes() {
 
             if (response.success) {
                 call.respond(response)
-            } else {
+            } else if (response.error == "Client not found") {
                 call.respond(HttpStatusCode.NotFound, response)
+            } else {
+                call.respond(HttpStatusCode.BadRequest, response)
             }
         }
 
