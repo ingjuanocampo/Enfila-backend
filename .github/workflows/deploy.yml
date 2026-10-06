@@ -30,7 +30,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: enfila-backend.tar.gz
-          target: /tmp
+          target: /home/deploy/incoming
           overwrite: true
 
       - name: Build image and restart services
@@ -42,7 +42,7 @@ jobs:
           command_timeout: 20m
           script: |
             set -eu
-            archive=$(find /tmp -name enfila-backend.tar.gz | head -n 1)
+            archive=$(find /home/deploy/incoming -name enfila-backend.tar.gz | head -n 1)
             test -n "$archive"
             tar -xzf "$archive" -C /opt/enfila
             rm -f "$archive"
