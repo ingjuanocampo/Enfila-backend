@@ -4,6 +4,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.Instant
 
@@ -24,6 +25,13 @@ object ClientsTable : IdTable<String>("clients") {
     override val id: Column<EntityID<String>> = varchar("id", 255).entityId()
     val name = varchar("name", 255).nullable()
     val shifts = text("shifts").nullable() // JSON array as text
+    val email = varchar("email", 255).nullable()
+    val birthDate = date("birth_date").nullable()
+    val sex = varchar("sex", 32).nullable()
+    val city = varchar("city", 100).nullable()
+    val notes = text("notes").nullable()
+    val favoriteOrder = varchar("favorite_order", 120).nullable()
+    val favoriteStoreId = varchar("favorite_store_id", 255).nullable()
     val createdAt = timestamp("created_at").default(Instant.now())
     val updatedAt = timestamp("updated_at").default(Instant.now())
     

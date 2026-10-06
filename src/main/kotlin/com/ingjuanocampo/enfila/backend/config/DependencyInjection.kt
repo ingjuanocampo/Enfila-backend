@@ -24,7 +24,7 @@ val appModule = module {
 
     // Services
     single<UserService> { UserServiceImpl(get()) }
-    single<ClientService> { ClientServiceImpl(get()) }
+    single<ClientService> { ClientServiceImpl(get(), get()) }
     single<ShiftService> { ShiftServiceImpl(get(), get()) }
     single<CompanySiteService> { CompanySiteServiceImpl(get()) }
     single<MessageService> { MessageServiceImpl() }
