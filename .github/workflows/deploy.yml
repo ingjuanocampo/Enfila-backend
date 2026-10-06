@@ -19,7 +19,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Pack source
-        run: tar --exclude .git --exclude build --exclude .gradle -czf enfila-backend.tar.gz .
+        run: |
+          tar --exclude .git --exclude build --exclude .gradle -czf /tmp/enfila-backend.tar.gz .
+          mv /tmp/enfila-backend.tar.gz enfila-backend.tar.gz
 
       - name: Copy source to server
         uses: appleboy/scp-action@v0.1.7
