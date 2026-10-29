@@ -44,6 +44,7 @@ fun Application.configureDatabase() {
             CompanySitesTable,
             ShiftsTable,
             TipsTable,
+            NotificationsTable,
             ConfigTable
         )
     }

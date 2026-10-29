@@ -2,6 +2,7 @@ package com.ingjuanocampo.enfila.backend
 
 import com.ingjuanocampo.enfila.backend.config.configureDatabase
 import com.ingjuanocampo.enfila.backend.config.configureDependencyInjection
+import com.ingjuanocampo.enfila.backend.config.configureNotificationWorker
 import com.ingjuanocampo.enfila.backend.config.configureFirebase
 import com.ingjuanocampo.enfila.backend.config.configureMigration
 import com.ingjuanocampo.enfila.backend.config.configureRouting
@@ -24,4 +25,5 @@ fun Application.module() {
     configureSerialization()
     configureMigration()
     configureRouting()
+    configureNotificationWorker()
 }

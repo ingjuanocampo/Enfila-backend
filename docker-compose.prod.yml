@@ -36,6 +36,8 @@ services:
       - DATABASE_PASSWORD=${DB_PASSWORD}
       - TWILIO_SID=${TWILIO_SID}
       - TWILIO_TOKEN=${TWILIO_TOKEN}
+      - TWILIO_WHATSAPP_FROM=${TWILIO_WHATSAPP_FROM}
+      - TWILIO_WHATSAPP_CONTENT_SID=${TWILIO_WHATSAPP_CONTENT_SID:-}
     volumes:
       - ./firebase-service-account.json:/app/firebase-service-account.json:ro
     healthcheck:
