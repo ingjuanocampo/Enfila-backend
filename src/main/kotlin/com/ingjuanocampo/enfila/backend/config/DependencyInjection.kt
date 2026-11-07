@@ -21,13 +21,18 @@ val appModule = module {
     single<ShiftRepository> { ShiftRepositoryImpl() }
     single<CompanySiteRepository> { CompanySiteRepositoryImpl() }
     single<TipRepository> { TipRepositoryImpl() }
+    single<NotificationRepository> { NotificationRepositoryImpl() }
 
     // Services
+    single { MessageServiceImpl() }
+    single<MessageService> { get<MessageServiceImpl>() }
+    single<TurnReadyTransport> { get<MessageServiceImpl>() }
+    single { TurnReadyNotifier(get()) }
+    single { NotificationDeliveryWorker(get(), get()) }
     single<UserService> { UserServiceImpl(get()) }
     single<ClientService> { ClientServiceImpl(get(), get()) }
-    single<ShiftService> { ShiftServiceImpl(get(), get()) }
+    single<ShiftService> { ShiftServiceImpl(get(), get(), get(), get()) }
     single<CompanySiteService> { CompanySiteServiceImpl(get()) }
-    single<MessageService> { MessageServiceImpl() }
     single<MigrationService> { MigrationServiceImpl(get(), get(), get(), get()) }
     single<UsageMilestoneEvaluator> {
         UsageMilestoneEvaluatorImpl(get(), get(), get(), get())

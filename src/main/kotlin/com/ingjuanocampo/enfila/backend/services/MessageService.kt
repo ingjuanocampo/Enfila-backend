@@ -26,7 +26,7 @@ data class TwilioResponse(
     val error_message: String? = null
 )
 
-class MessageServiceImpl : MessageService {
+class MessageServiceImpl : MessageService, TurnReadyTransport {
     
     private val httpClient = HttpClient(CIO) {
         install(ContentNegotiation) {
@@ -78,6 +78,49 @@ class MessageServiceImpl : MessageService {
         }
     }
     
+    override suspend fun sendTurnReady(
+        toDigits: String,
+        body: String,
+        contentVariablesJson: String?,
+    ): MessageSendResult {
+        val credentials = getTwilioCredentials()
+            ?: return MessageSendResult(success = false, error = "Twilio credentials not configured")
+        val fromDigits = normalizePhoneDigits(System.getenv("TWILIO_WHATSAPP_FROM").orEmpty())
+        if (fromDigits.isEmpty()) {
+            return MessageSendResult(success = false, error = "TWILIO_WHATSAPP_FROM is not configured")
+        }
+        val destination = normalizePhoneDigits(toDigits)
+        if (destination.isEmpty()) {
+            return MessageSendResult(success = false, error = "Client phone is empty")
+        }
+        val contentSid = System.getenv("TWILIO_WHATSAPP_CONTENT_SID")?.takeIf { it.isNotBlank() }
+
+        return try {
+            val token = "${credentials.sid}:${credentials.token}"
+            val tokenEncode = Base64.getEncoder().encodeToString(token.toByteArray())
+            val response: TwilioResponse = httpClient.submitForm(
+                url = "https://api.twilio.com/2010-04-01/Accounts/${credentials.sid}/Messages.json",
+                formParameters = turnReadyFormParameters(
+                    fromDigits = fromDigits,
+                    toDigits = destination,
+                    body = body,
+                    contentSid = contentSid,
+                    contentVariablesJson = contentVariablesJson,
+                ),
+            ) {
+                header(HttpHeaders.Authorization, "Basic $tokenEncode")
+            }.body()
+
+            if (response.error_code != null) {
+                MessageSendResult(success = false, error = response.error_message ?: "Unknown error")
+            } else {
+                MessageSendResult(success = true, messageId = response.sid)
+            }
+        } catch (e: Exception) {
+            MessageSendResult(success = false, error = e.message ?: "Failed to send message")
+        }
+    }
+
     override suspend fun getTwilioCredentials(): TwilioCredentials? {
         // In production, load from environment variables or secure configuration
         val sid = System.getenv("TWILIO_SID")
@@ -86,5 +129,24 @@ class MessageServiceImpl : MessageService {
         return if (sid != null && token != null) {
             TwilioCredentials(sid = sid, token = token)
         } else null
+    }
+}
+
+internal fun turnReadyFormParameters(
+    fromDigits: String,
+    toDigits: String,
+    body: String,
+    contentSid: String?,
+    contentVariablesJson: String?,
+): Parameters = Parameters.build {
+    append("To", "whatsapp:+$toDigits")
+    append("From", "whatsapp:+$fromDigits")
+    if (!contentSid.isNullOrBlank()) {
+        append("ContentSid", contentSid)
+        if (!contentVariablesJson.isNullOrBlank()) {
+            append("ContentVariables", contentVariablesJson)
+        }
+    } else {
+        append("Body", body)
     }
 }

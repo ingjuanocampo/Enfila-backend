@@ -2,7 +2,9 @@ package com.ingjuanocampo.enfila.backend.services
 
 import com.ingjuanocampo.enfila.backend.data.models.*
 import com.ingjuanocampo.enfila.backend.data.repositories.ClientRepository
+import com.ingjuanocampo.enfila.backend.data.repositories.CompanySiteRepository
 import com.ingjuanocampo.enfila.backend.data.repositories.ShiftRepository
+import org.slf4j.LoggerFactory
 
 interface ShiftService {
     suspend fun createShift(request: CreateShiftRequest): ApiResponse<Shift>
@@ -23,8 +25,12 @@ interface ShiftService {
 
 class ShiftServiceImpl(
     private val shiftRepository: ShiftRepository,
-    private val clientRepository: ClientRepository
+    private val clientRepository: ClientRepository,
+    private val companySiteRepository: CompanySiteRepository,
+    private val turnReadyNotifier: TurnReadyNotifier,
+    private val clock: () -> Long = { System.currentTimeMillis() },
 ) : ShiftService {
+    private val logger = LoggerFactory.getLogger(ShiftServiceImpl::class.java)
     
     override suspend fun createShift(request: CreateShiftRequest): ApiResponse<Shift> {
         return try {
@@ -95,12 +101,26 @@ class ShiftServiceImpl(
     
     override suspend fun updateShift(id: String, request: UpdateShiftRequest): ApiResponse<Shift> {
         return try {
-            val shift = shiftRepository.update(id, request)
-            if (shift != null) {
-                shift.toApiResponse()
-            } else {
-                "Shift not found".toErrorResponse()
+            val previous = shiftRepository.getById(id) ?: return "Shift not found".toErrorResponse()
+            val siteName = runCatching {
+                companySiteRepository.getById(previous.parentCompanySite)?.name
+            }.getOrElse { error ->
+                logger.error("Failed to load company site for turn-ready notification", error)
+                null
             }
+            val prepared = prepareShiftUpdate(previous, request, siteName, clock())
+            val shift = shiftRepository.update(id, prepared.request) ?: return "Shift not found".toErrorResponse()
+            val draft = prepared.draft
+            if (draft != null) {
+                try {
+                    turnReadyNotifier.enqueue(shift.id, draft)
+                } catch (e: Exception) {
+                    logger.error("Failed to enqueue turn-ready notification for shift ${shift.id}", e)
+                }
+            } else if (request.state == ShiftState.CALLING && previous.state != ShiftState.CALLING) {
+                logger.warn("Skipped turn-ready notification for shift ${previous.id}: missing phone")
+            }
+            shift.toApiResponse()
         } catch (e: Exception) {
             "Failed to update shift: ${e.message}".toErrorResponse()
         }

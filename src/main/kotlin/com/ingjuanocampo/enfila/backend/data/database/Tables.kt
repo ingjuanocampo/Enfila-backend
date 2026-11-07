@@ -80,6 +80,37 @@ object TipsTable : IdTable<String>("tips") {
     override val primaryKey = PrimaryKey(id)
 }
 
+object NotificationsTable : IdTable<String>("notifications") {
+    override val id: Column<EntityID<String>> = varchar("id", 36).entityId()
+    val shiftId = varchar("shift_id", 255)
+    val contactId = varchar("contact_id", 255)
+    val eventType = enumerationByName(
+        "event_type",
+        32,
+        com.ingjuanocampo.enfila.backend.data.models.NotificationEventType::class,
+    )
+    val body = text("body")
+    val contentVariables = text("content_variables").nullable()
+    val status = enumerationByName(
+        "status",
+        16,
+        com.ingjuanocampo.enfila.backend.data.models.NotificationStatus::class,
+    )
+    val attempts = integer("attempts").default(0)
+    val nextAttemptAt = timestamp("next_attempt_at")
+    val lastError = text("last_error").nullable()
+    val providerMessageId = varchar("provider_message_id", 64).nullable()
+    val attentionStartDate = long("attention_start_date")
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
+
+    override val primaryKey = PrimaryKey(id)
+
+    init {
+        uniqueIndex("notifications_shift_event_attention_unique", shiftId, eventType, attentionStartDate)
+    }
+}
+
 // Configuration table for storing app settings
 object ConfigTable : Table("config") {
     val key = varchar("key", 255)

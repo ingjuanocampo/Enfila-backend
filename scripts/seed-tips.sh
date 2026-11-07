@@ -26,11 +26,11 @@ publish_tip 1 ON_LOGIN \
 
 publish_tip 2 FIRST_SHIFT_ASSIGNED \
   "How to call the next client?" \
-  "On the Home screen, the 'Up next' card shows the first waiting turn. Tap 'Call this turn' to move it to CALLING status. An SMS notification is sent automatically."
+  "On the Home screen, the 'Up next' card shows the first waiting turn. Tap 'Call this turn' to move it to CALLING status. A WhatsApp notification is sent automatically."
 
 publish_tip 3 FIRST_SHIFT_CALLED \
-  "How does SMS notification work?" \
-  "When you call a turn, EnFila sends an SMS to the client's phone number via the backend messaging service. No additional configuration is needed on your side."
+  "How does WhatsApp notification work?" \
+  "When you call a turn, EnFila sends a WhatsApp message to the client's phone number via the backend messaging service. No additional configuration is needed on your side."
 
 publish_tip 4 FIRST_SHIFT_COMPLETED \
   "How to finish or cancel a turn?" \
